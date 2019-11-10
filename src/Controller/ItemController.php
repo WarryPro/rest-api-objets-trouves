@@ -4,6 +4,9 @@ namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Entity\User;
+use App\Entity\Item;
+use App\Entity\Category;
 
 class ItemController extends AbstractController
 {
