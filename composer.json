@@ -17,9 +17,11 @@
         "symfony/orm-pack": "^1.0",
         "symfony/property-access": "4.*",
         "symfony/serializer": "4.*",
+        "symfony/validator": "4.3.*",
         "symfony/yaml": "4.3.*"
     },
     "require-dev": {
+        "doctrine/doctrine-fixtures-bundle": "^3.2",
         "symfony/maker-bundle": "^1.14",
         "symfony/web-server-bundle": "4.3.*"
     },
