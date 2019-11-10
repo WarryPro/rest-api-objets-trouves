@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
  */
-class User
+class User implements \JsonSerializable
 {
     /**
      * @ORM\Id()
@@ -61,6 +61,9 @@ class User
 
     public function __construct()
     {
+        $this->createdAt = new \DateTime();
+        $this->role = 'user';
+//        $this->token = substr(sha1(random_bytes(10)), 0, 10);
         $this->items = new ArrayCollection();
     }
 
@@ -182,5 +185,17 @@ class User
         }
 
         return $this;
+    }
+
+    public function jsonSerialize():array
+    {
+        return [
+            'id' => $this->id,
+            'firstname' => $this->firstname,
+            'lastname' => $this->lastname,
+            'email' => $this->email,
+            'role'  => $this->role,
+            'avatar'    => $this->avatar,
+        ];
     }
 }
