@@ -15,6 +15,9 @@ use App\Entity\User;
 use App\Entity\Item;
 use App\Entity\Category;
 
+use App\Services\JwtAuth;
+
+
 class UserController extends AbstractController
 {
     /*
@@ -49,16 +52,6 @@ class UserController extends AbstractController
 
         $users = $userRepo->findAll();
 
-
-//        foreach ($users as $user) {
-//            echo "<p>{$user->getFirstname()} {$user->getLastname()}</p>";
-//        }
-
-
-        $data = [
-            'message' => 'Welcome to your new controller!',
-            'path' => 'src/Controller/UserController.php',
-        ];
         //jsonResponse($users)
         return $this->json($users);
     }
@@ -67,7 +60,8 @@ class UserController extends AbstractController
     /**
      * @Route("/register", name="register", methods={"POST"})
      */
-    public function create(Request $request) {
+    public function create(Request $request)
+    {
 
         // receive data by post
         $json = $request->get('json', null);
@@ -85,6 +79,7 @@ class UserController extends AbstractController
         // verify and validate data
         if($json !== null) {
            $firstname = (!empty($params->firstname)) ? $params->firstname : null;
+           $lastname = (!empty($params->lastname)) ? $params->lastname : null;
            $email = (!empty($params->email)) ? $params->email : null;
            $password = (!empty($params->password)) ? $params->password : null;
 
@@ -94,31 +89,104 @@ class UserController extends AbstractController
             ]);
 
             if(!empty($email) && count($validateEmail) == 0 && !empty($password) && !empty($firstname)) {
-                $data = [
-                    'status'  => 'success',
-                    'code'    => 200,
-                    'message' => 'Validation correcte!',
-                ];
-            }else {
-                $data = [
-                    'status'  => 'error',
-                    'code'    => 200,
-                    'message' => 'Validation erronée',
-                ];
+
+                // if validate OK, create user object
+                $user = new User();
+
+                $user -> setFirstname($firstname)
+                      -> setLastname($lastname)
+                      -> setEmail($email)
+                      -> setPassword(hash('sha256', $password)); // crypt password
+
+
+                // verify if user exists
+                $doctrine = $this->getDoctrine();
+                $em = $doctrine->getManager();
+                $userRepo = $doctrine->getRepository(User::class);
+
+                $issetUser = $userRepo->findBy(array(
+                    'email' => $email
+                ));
+
+                // if not exists save in the DB
+                if(count($issetUser) === 0) {
+
+                    $em->persist($user);
+                    $em->flush();
+                    $data = [
+                        'status'  => 'success',
+                        'code'    => 200,
+                        'message' => 'Utilisateur créé avec succès!',
+                        'user'    => $user,
+                    ];
+                }
+                else {
+                    $data = [
+                        'status'  => 'error',
+                        'code'    => 200,
+                        'message' => 'Erreur, l\'utilisateur existe déjà!',
+                    ];
+                }
+
             }
 
         }
 
-        // if validate OK, create user object
-
-        // crypt password
-
-        // verify if user exists
-
-        // if not exists save in the DB
-
         // Make json response
-
         return new JsonResponse($data);
+    }
+
+
+    /**
+     * @param Request $request
+     * @Route("/login", name="login", methods={"POST"})
+     */
+    public function login(Request $request, JwtAuth $jwtAuth)
+    {
+        // 1. get data by POST method
+        $json = $request->get('json', null);
+        $params = json_decode($json);
+
+        // 2. Default Array to return
+        $data =  [
+            'status' => 'Error',
+            'code'  => 200,
+            'message' => 'Erreur de connexion!',
+        ];
+
+        // 3. Verfify and validate data
+        if($json !== null) {
+            $email = (!empty($params->email)) ? $params->email : null;
+            $password = (!empty($params->password)) ? $params->password : null;
+            $getToken = (!empty($params->getToken)) ? $params->getToken : null;
+
+            $validator = Validation::createValidator();
+            $validateEmail = $validator->validate($email, [
+                new Email()
+            ]);
+
+            if(!empty($email) && !empty($password) && count($validateEmail) == 0) {
+
+                // 4. Crypt password
+                $pwd = hash('sha256', $password);
+                // 5. if validation is OK, call a service for identify User (jwt, token or an obj)
+                if($getToken) {
+                    $signup = $jwtAuth->signup($email, $pwd, $getToken);
+
+                }else {
+                    $signup = $jwtAuth->signup($email, $pwd);
+                }
+
+                return new JsonResponse($signup);
+                // 6. create jwt service
+
+
+            }
+
+        }
+
+
+        // 7. if data is OK, response
+        return $this -> jsonResponse($data);
     }
 }
