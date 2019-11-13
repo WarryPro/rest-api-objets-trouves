@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use Firebase\JWT\JWT;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
@@ -188,5 +189,98 @@ class UserController extends AbstractController
 
         // 7. if data is OK, response
         return $this -> jsonResponse($data);
+    }
+
+
+    /**
+     * @param Request $request
+     * @Route("/user/edit", name="edit", methods={"PUT"})
+     */
+    public function edit(Request $request, JwtAuth $jwtAuth)
+    {
+        // 1. get auth header
+        $token = $request->headers->get('Authorization');
+
+        // 2. create method to verify if token is OK
+        $checkToken = $jwtAuth->checkToken($token);
+
+        // Reponse by default
+        $data = [
+            'status' => 'error',
+            'code'  => 400,
+            'message' => 'Utilisateur non autorisé!'
+        ];
+
+        // 3. If token OK, update user
+        if($checkToken) {
+            // Update user
+
+            // get EntityManager
+            $entityManager = $this->getDoctrine()->getManager();
+
+            // get data logged user
+            $identity = $jwtAuth->checkToken($token, true);
+
+            // get user to update
+            $userRepo = $this->getDoctrine()->getRepository(User::class);
+
+            $user = $userRepo->findOneBy([
+                'id' => $identity->sub
+            ]);
+
+
+            // Get data by POST
+            $json = $request->get('json', null);
+            $params = json_decode($json);
+
+            // verify and validate data
+            if(!empty($json)) {
+                $firstname = (!empty($params->firstname)) ? $params->firstname : null;
+                $lastname = (!empty($params->lastname)) ? $params->lastname : null;
+                $email = (!empty($params->email)) ? $params->email : null;
+
+                $validator = Validation::createValidator();
+                $validateEmail = $validator->validate($email, [
+                    new Email()
+                ]);
+
+                if(!empty($email) && count($validateEmail) == 0 && !empty($firstname) && !empty($lastname)) {
+                    // assign new data to user objet
+                    $user->setEmail($email);
+                    $user->setFirstname($firstname);
+                    $user->setLastname($lastname);
+
+                    // verify duplicate data
+                    $issetUser = $userRepo->findBy([
+                       'email' => $email
+                    ]);
+
+                    // save changes in DB
+                    if($issetUser === 0 || $identity->email === $email) {
+                        $entityManager->persist($user);
+                        $entityManager->flush();
+
+                        // response if user update OK
+                        $data = [
+                            'status' => 'success',
+                            'code'  => 400,
+                            'message' => 'Utilisateur mis à jour avec succès!',
+                            'user' => $user
+                        ];
+                    }else {
+                        // Response if not updated
+                        $data = [
+                            'status' => 'error',
+                            'code'  => 400,
+                            'message' => 'Vous ne pouvez pas utiliser cet email!'
+                        ];
+                    }
+
+                }
+            }
+
+        }
+
+        return $this->JsonResponse($data);
     }
 }
