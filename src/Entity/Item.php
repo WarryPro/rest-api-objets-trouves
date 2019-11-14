@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ItemRepository")
@@ -24,11 +25,16 @@ class Item
 
     /**
      * @ORM\Column(type="string", length=200)
+     * @Assert\NotBlank(message="Ce champs ne doit pas être vide")
+     * @Assert\Length(min=3, minMessage="Titre est trop court, il faut au moins 3 caractères")
+     *
      */
     private $title;
 
     /**
      * @ORM\Column(type="text")
+     * @Assert\NotBlank()
+     * @Assert\Length(min="10", minMessage="Description trop courte, il faut au moins 10 caractères")
      */
     private $description;
 
@@ -50,11 +56,12 @@ class Item
     /**
      * @ORM\Column(type="string", length=80)
      */
-    private $status;
+    private $status = 'Normal';
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Category", inversedBy="items")
      * @ORM\JoinColumn(nullable=false)
+     *
      */
     private $category;
 
@@ -68,6 +75,7 @@ class Item
     public function __construct()
     {
         $this->createdAt = new \DateTime();
+        $this->updatedAt = new \DateTime();
     }
 
     public function getId(): ?int

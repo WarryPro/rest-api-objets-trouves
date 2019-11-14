@@ -23,6 +23,7 @@ class User implements \JsonSerializable
 
     /**
      * @ORM\Column(type="string", length=50)
+     * @Assert\NotBlank()
      */
     private $firstname;
 
@@ -45,6 +46,8 @@ class User implements \JsonSerializable
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\NotBlank()
+     * @Assert\Length(min="0")
      */
     private $password;
 
