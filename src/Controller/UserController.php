@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
@@ -9,6 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Validator\Constraints\Email;
 use Symfony\Component\Validator\Validation;
+use Doctrine\ORM\EntityManagerInterface;
 
 
 use App\Entity\User;
@@ -42,15 +44,51 @@ class UserController extends AbstractController
 
     /**
      * List of users
-     * @Route("/users", name="users", methods={"GET"})
+     * @Route("/admin/users", name="users", methods={"GET"})
      */
-    public function index()
+    public function users(Request $request, JwtAuth $jwtAuth, PaginatorInterface $paginator, EntityManagerInterface $entityManager)
     {
+        // Default response
+        $data = [
+          'status'  => 'error',
+          'code'    => 404,
+          'message' => 'Aucun utilisateur à afficher ou vous n\'avez pas le droit pour y accèder.'
+        ];
 
-        $userRepo = $this->getDoctrine()->getRepository(User::class);
+        // 1. Get token
+        $token = $request->headers->get('Authorization');
 
-        $users = $userRepo->findAll();
-        return new JsonResponse($users);
+        // 2. Token verify
+        $checkToken = $jwtAuth->checkToken($token);
+
+        // 3. if token OK
+        if($checkToken) {
+
+            $dql = "SELECT u FROM App:User u ORDER BY u.id DESC";
+
+            $query = $entityManager->createQuery($dql);
+
+            // 6. Get param page
+            $page = $request->query->getInt('page', 1);
+            $usersPerPage = 6;
+            // 7. Invok pagination
+            $pagination = $paginator->paginate($query, $page, $usersPerPage);
+
+            $total = $pagination->getTotalItemCount();
+
+
+            $data = [
+                'status'    => 'success',
+                'code'      => 200,
+                'total_users_count' => $total,
+                'current_page'  => $page,
+                'users_per_page'    => $usersPerPage,
+                'total_pages'       => ceil($total / $usersPerPage),
+                'users'             => $pagination->getItems()
+            ];
+
+        }
+        return new JsonResponse($data);
     }
 
     /**
@@ -286,7 +324,7 @@ class UserController extends AbstractController
         $data = [
             'status'  => 'error',
             'code'    => 404,
-            'message' => 'Cet utilisateur n\'existe pas.'
+            'message' => 'L\'utilisateur n\'existe pas ou vous n\'avez pas le droit pour y accèder.'
         ];
 
         // 1. Get token
@@ -305,7 +343,7 @@ class UserController extends AbstractController
                 // success response
                 $data = [
                     'status'  => 'success',
-                    'code'    => 200,
+                    'code'    => 404,
                     'message' => 'Détails de l\'utilisateur.',
                     'user'    => $user
                 ];
