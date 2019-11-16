@@ -10,7 +10,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Validator\Constraints\Email;
 use Symfony\Component\Validator\Validation;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use Symfony\Component\Validator\ConstraintViolationList;
 
 use App\Entity\User;
 use App\Entity\Item;
@@ -21,14 +20,16 @@ use App\Services\JwtAuth;
 class ItemController extends AbstractController
 {
     /**
-     * @Route("/item", name="item")
+     * List items
+     * @Route("/", name="homepage", methods={"GET"})
      */
     public function index()
     {
-        return $this->json([
-            'message' => 'Welcome to your new controller!',
-            'path' => 'src/Controller/ItemController.php',
-        ]);
+        $itemRepo = $this->getDoctrine()->getRepository(Item::class);
+
+        $items = $itemRepo->findAll();
+
+        return new JsonResponse($items);
     }
 
 

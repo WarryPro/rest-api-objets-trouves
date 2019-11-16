@@ -8,7 +8,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ItemRepository")
  */
-class Item
+class Item implements \JsonSerializable
 {
     /**
      * @ORM\Id()
@@ -189,5 +189,19 @@ class Item
         $this->user = $user;
 
         return $this;
+    }
+
+    public function jsonSerialize():array
+    {
+        return [
+            'id'            => $this->id,
+            'image'         => $this->image,
+            'title'         => $this->title,
+            'description'   => $this->description,
+            'author'        => $this->user,
+            'status'        => $this->status,
+            'category'      => $this->category,
+            'created'       => $this->createdAt,
+        ];
     }
 }

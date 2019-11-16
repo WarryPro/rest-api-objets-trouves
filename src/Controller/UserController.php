@@ -33,29 +33,25 @@ class UserController extends AbstractController
         $response ->setContent($json);
 
         // Format response
-        $response -> headers ->set('Content-type', 'application/json');
+        $response -> headers->set('Content-type', 'application/json');
 
         // Return the response
         return $response;
 
     }
 
-
     /**
-     * @Route("/user", name="user")
+     * List of users
+     * @Route("/users", name="users", methods={"GET"})
      */
     public function index()
     {
 
         $userRepo = $this->getDoctrine()->getRepository(User::class);
-        $ItemRepo = $this->getDoctrine()->getRepository(Item::class);
 
         $users = $userRepo->findAll();
-
-        //jsonResponse($users)
-        return $this->json($users);
+        return new JsonResponse($users);
     }
-
 
     /**
      * @Route("/register", name="register", methods={"POST"})
@@ -136,7 +132,6 @@ class UserController extends AbstractController
         return new JsonResponse($data);
     }
 
-
     /**
      * @param Request $request
      * @Route("/login", name="login", methods={"POST"})
@@ -189,7 +184,6 @@ class UserController extends AbstractController
         // 7. if data is OK, response
         return $this -> jsonResponse($data);
     }
-
 
     /**
      * @param Request $request
@@ -281,5 +275,49 @@ class UserController extends AbstractController
         }
 
         return $this->JsonResponse($data);
+    }
+
+    /**
+     * @Route("/admin/users/delete/{id}", name="delete", methods={"DELETE"})
+     */
+    public function delete(Request $request, JwtAuth $jwtAuth, $id = null) {
+
+        // 1. Get user token
+        $token = $request->headers->get('Authorization');
+        $checkToken = $jwtAuth->checkToken($token);
+
+        // Default response
+        $data = [
+          'status'  => 'error',
+          'code'    => 404,
+          'message' => 'Cet utilisateur n\'existe pas.'
+        ];
+
+        if($checkToken) {
+            $identity = $jwtAuth->checkToken($token, true);
+
+            // Get user by id from DB
+            $user = $this->getDoctrine()->getRepository(User::class)->findOneBy(['id' => $id]);
+
+
+            // Remove user from DB
+            if($user && is_object($user) && $identity->role === 'admin') {
+
+                $em = $this->getDoctrine()->getManager();
+                $em->remove($user);
+                $em->flush();
+
+                // success response
+                $data = [
+                    'status'  => 'success',
+                    'code'    => 200,
+                    'message' => 'L\'utilisateur a été supprimé avec succès.'
+                ];
+            }
+
+        }
+
+        // Return data
+        return new JsonResponse($data);
     }
 }

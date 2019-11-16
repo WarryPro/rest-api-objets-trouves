@@ -62,7 +62,7 @@ class User implements \JsonSerializable
     private $createdAt;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Item", mappedBy="user")
+     * @ORM\OneToMany(targetEntity="App\Entity\Item", mappedBy="user", cascade={"remove"})
      */
     private $items;
 
