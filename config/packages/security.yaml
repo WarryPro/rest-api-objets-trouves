@@ -21,6 +21,5 @@ security:
          - { path: ^/register, role: IS_AUTHENTICATED_ANONYMOUSLY }
          - { path: ^/login, role: IS_AUTHENTICATED_ANONYMOUSLY }
 #         - { path: ^/admin, roles: ROLE_ADMIN }
-         - { path: ^/users, roles: ROLE_ADMIN }
          - { path: ^/profile, roles: ROLE_USER }
          - { path: ^/items, role: IS_AUTHENTICATED_ANONYMOUSLY }

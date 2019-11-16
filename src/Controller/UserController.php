@@ -278,6 +278,43 @@ class UserController extends AbstractController
     }
 
     /**
+     * @Route("/admin/users/{id}", name="show", methods={"GET"})
+     */
+    public function show(Request $request, JwtAuth $jwtAuth, $id = null) {
+
+        // Default response
+        $data = [
+            'status'  => 'error',
+            'code'    => 404,
+            'message' => 'Cet utilisateur n\'existe pas.'
+        ];
+
+        // 1. Get token
+        $token = $request->headers->get('Authorization');
+
+        // 2. create method to verify if token is OK
+        $checkToken = $jwtAuth->checkToken($token);
+
+        if($checkToken) {
+            $identity = $jwtAuth->checkToken($token, true);
+            $user = $this->getDoctrine()->getRepository(User::class)->findOneBy([
+                'id' => $id
+            ]);
+            // 3. Show user
+            if($user && is_object($user) && $identity->role === 'admin') {
+                // success response
+                $data = [
+                    'status'  => 'success',
+                    'code'    => 200,
+                    'message' => 'Détails de l\'utilisateur.',
+                    'user'    => $user
+                ];
+            }
+        }
+        return new JsonResponse($data);
+    }
+
+    /**
      * @Route("/admin/users/delete/{id}", name="delete", methods={"DELETE"})
      */
     public function delete(Request $request, JwtAuth $jwtAuth, $id = null) {
