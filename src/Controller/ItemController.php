@@ -23,7 +23,7 @@ class ItemController extends AbstractController
      * List items
      * @Route("/", name="homepage", methods={"GET"})
      */
-    public function index()
+    public function items()
     {
         $itemRepo = $this->getDoctrine()->getRepository(Item::class);
 
@@ -36,10 +36,10 @@ class ItemController extends AbstractController
     /**
      * @param Request $request
      * @param JwtAuth $jwtAuth
-     * @Route("/item/new", name="new", methods={"POST"})
+     * @Route("/items/new", name="new", methods={"POST"})
      * @return JsonResponse
      */
-    public function createItem(Request $request, JwtAuth $jwtAuth, ValidatorInterface $validator) {
+    public function create(Request $request, JwtAuth $jwtAuth, ValidatorInterface $validator) {
         // Response by default
         $data = [
             'status' => 'error',
@@ -79,7 +79,7 @@ class ItemController extends AbstractController
                     ]);
 
                     $categoryEntity = $this->getDoctrine()->getRepository(Category::class)->findOneBy([
-                        'name' => $category,
+                        'id' => $category,
                     ]);
 
                     //create object
@@ -108,7 +108,7 @@ class ItemController extends AbstractController
                         'status' => 'succèss',
                         'code'  => 200,
                         'message' => 'L\'objet a était créé!',
-                        'item' => $item->getId(),
+                        'item' => $item,
                     ];
                 }
             }
@@ -118,5 +118,37 @@ class ItemController extends AbstractController
         // 7. return response
         return new JsonResponse($data);
     }
+
+    /**
+     * @Route("/items/{id}", name="show_item", methods={"GET"})
+     * @return JsonResponse
+     **/
+    public function show($id = null) {
+        // Default response
+        $data = [
+            'status'  => 'error',
+            'code'    => 404,
+            'message' => 'Cet objet n\'existe pas.'
+        ];
+
+        // 1. get item
+        $item = $this->getDoctrine()->getRepository(Item::class)->findOneBy([
+            'id' => $id
+        ]);
+
+        // 2. Verify and validate item
+        if($item && is_object($item)) {
+           // 3. Success response
+            $data = [
+                'status'    => 'success',
+                'code'      => 200,
+                'item'      => $item
+            ];
+        }
+
+        return new JsonResponse($data);
+    }
+
+
 
 }
