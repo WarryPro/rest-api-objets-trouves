@@ -11,7 +11,7 @@ namespace App\Services;
 class Responses
 {
     private $status;
-    private $code;
+    public $code;
 
     public function __construct()
     {
@@ -21,8 +21,9 @@ class Responses
 
     }
 
-    public function error($message = null)
+    public function error(string $message = null, int $code = null)
     {
+        $this->code = ($code) ? $code : $this->code;
         if($message) {
             $data = [
                 'status'    => $this->status,
@@ -40,11 +41,10 @@ class Responses
         return $data;
     }
 
-    public function success( $json, $message = null)
+    public function success( object $json, string $message = null, int $code = null)
     {
         $this->status = 'success';
-        $this->code = 200;
-
+        $this->code = ($code) ? $code : 200;
         if($message) {
             $data = [
                 'status'    => $this->status,

@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Services\Responses;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
@@ -227,20 +228,15 @@ class UserController extends AbstractController
      * @param Request $request
      * @Route("/user/edit", name="edit", methods={"PUT"})
      */
-    public function edit(Request $request, JwtAuth $jwtAuth)
+    public function edit(Request $request, JwtAuth $jwtAuth, Responses $responses)
     {
+        // Reponse by default
+        $data = $responses->error('Utilisateur non autorisé!', 401);
         // 1. get auth header
         $token = $request->headers->get('Authorization');
 
         // 2. create method to verify if token is OK
         $checkToken = $jwtAuth->checkToken($token);
-
-        // Reponse by default
-        $data = [
-            'status' => 'error',
-            'code'  => 400,
-            'message' => 'Utilisateur non autorisé!'
-        ];
 
         // 3. If token OK, update user
         if($checkToken) {
@@ -292,19 +288,10 @@ class UserController extends AbstractController
                         $entityManager->flush();
 
                         // response if user update OK
-                        $data = [
-                            'status' => 'success',
-                            'code'  => 400,
-                            'message' => 'Utilisateur mis à jour avec succès!',
-                            'user' => $user
-                        ];
+                        $data = $responses->success($user, 'Utilisateur mis à jour avec succès!');
                     }else {
                         // Response if not updated
-                        $data = [
-                            'status' => 'error',
-                            'code'  => 400,
-                            'message' => 'Vous ne pouvez pas utiliser cet email!'
-                        ];
+                        $data = $responses->error('Vous ne pouvez pas utiliser cet email!', 422);
                     }
 
                 }
@@ -318,14 +305,10 @@ class UserController extends AbstractController
     /**
      * @Route("/admin/users/{id}", name="show", methods={"GET"})
      */
-    public function show(Request $request, JwtAuth $jwtAuth, $id = null) {
+    public function show(Request $request, JwtAuth $jwtAuth, $id = null, Responses $responses) {
 
         // Default response
-        $data = [
-            'status'  => 'error',
-            'code'    => 404,
-            'message' => 'L\'utilisateur n\'existe pas ou vous n\'avez pas le droit pour y accèder.'
-        ];
+        $data = $responses->error('L\'utilisateur n\'existe pas ou vous n\'avez pas le droit pour y accèder.');
 
         // 1. Get token
         $token = $request->headers->get('Authorization');
@@ -341,12 +324,7 @@ class UserController extends AbstractController
             // 3. Show user
             if($user && is_object($user) && $identity->role === 'admin') {
                 // success response
-                $data = [
-                    'status'  => 'success',
-                    'code'    => 404,
-                    'message' => 'Détails de l\'utilisateur.',
-                    'user'    => $user
-                ];
+                $data = $responses->success($user);
             }
         }
         return new JsonResponse($data);
@@ -355,18 +333,14 @@ class UserController extends AbstractController
     /**
      * @Route("/admin/users/delete/{id}", name="delete", methods={"DELETE"})
      */
-    public function delete(Request $request, JwtAuth $jwtAuth, $id = null) {
+    public function delete(Request $request, JwtAuth $jwtAuth, $id = null, Responses $responses) {
 
         // 1. Get user token
         $token = $request->headers->get('Authorization');
         $checkToken = $jwtAuth->checkToken($token);
 
         // Default response
-        $data = [
-          'status'  => 'error',
-          'code'    => 404,
-          'message' => 'Cet utilisateur n\'existe pas.'
-        ];
+        $data = $responses->error('L\'utilisateur n\'existe pas.');
 
         if($checkToken) {
             $identity = $jwtAuth->checkToken($token, true);
@@ -383,11 +357,7 @@ class UserController extends AbstractController
                 $em->flush();
 
                 // success response
-                $data = [
-                    'status'  => 'success',
-                    'code'    => 200,
-                    'message' => 'L\'utilisateur a été supprimé avec succès.'
-                ];
+                $data = $responses->success($user, 'L\'utilisateur a été supprimé avec succès.');
             }
 
         }
