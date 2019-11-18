@@ -23,6 +23,7 @@ class ItemController extends AbstractController
     /**
      * List items
      * @Route("/", name="homepage", methods={"GET"})
+     * @Route("/items", name="items", methods={"GET"})
      */
     public function items()
     {
