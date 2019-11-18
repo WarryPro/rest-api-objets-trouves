@@ -47,14 +47,10 @@ class UserController extends AbstractController
      * List of users
      * @Route("/admin/users", name="users", methods={"GET"})
      */
-    public function users(Request $request, JwtAuth $jwtAuth, PaginatorInterface $paginator, EntityManagerInterface $entityManager)
+    public function users(Request $request, JwtAuth $jwtAuth, PaginatorInterface $paginator, EntityManagerInterface $entityManager, Responses $responses)
     {
         // Default response
-        $data = [
-          'status'  => 'error',
-          'code'    => 404,
-          'message' => 'Aucun utilisateur à afficher ou vous n\'avez pas le droit pour y accèder.'
-        ];
+        $data = $responses->error("Aucun utilisateur à afficher ou vous n'avez pas le droit pour y accèder.", 404);
 
         // 1. Get token
         $token = $request->headers->get('Authorization');
@@ -95,21 +91,15 @@ class UserController extends AbstractController
     /**
      * @Route("/register", name="register", methods={"POST"})
      */
-    public function create(Request $request)
+    public function create(Request $request, Responses $responses)
     {
-
+        // resp by default
+        $data = $responses->error("L'utilisateur n'est pas été créé");
         // receive data by post
         $json = $request->get('json', null);
 
         // decode json
         $params = json_decode($json);
-
-        // resp by default
-        $data = [
-            'status'  => 'error',
-            'code'    => 200,
-            'message' => 'L\'utilisateur n\'est pas été créé',
-        ];
 
         // verify and validate data
         if($json !== null) {
@@ -148,19 +138,10 @@ class UserController extends AbstractController
 
                     $em->persist($user);
                     $em->flush();
-                    $data = [
-                        'status'  => 'success',
-                        'code'    => 200,
-                        'message' => 'Utilisateur créé avec succès!',
-                        'user'    => $user,
-                    ];
+                    $data = $responses->success($user, "Utilisateur créé avec succès!");
                 }
                 else {
-                    $data = [
-                        'status'  => 'error',
-                        'code'    => 200,
-                        'message' => 'Erreur, l\'utilisateur existe déjà!',
-                    ];
+                    $data = $responses->error("Erreur, l'utilisateur existe déjà!");
                 }
 
             }
@@ -175,18 +156,14 @@ class UserController extends AbstractController
      * @param Request $request
      * @Route("/login", name="login", methods={"POST"})
      */
-    public function login(Request $request, JwtAuth $jwtAuth)
+    public function login(Request $request, JwtAuth $jwtAuth, Responses $responses)
     {
+        // 2. Default Array to return
+        $data =  $responses->error("Erreur de connexion!", 200);
+
         // 1. get data by POST method
         $json = $request->get('json', null);
         $params = json_decode($json);
-
-        // 2. Default Array to return
-        $data =  [
-            'status' => 'Error',
-            'code'  => 200,
-            'message' => 'Erreur de connexion!',
-        ];
 
         // 3. Verfify and validate data
         if($json !== null) {
@@ -335,12 +312,12 @@ class UserController extends AbstractController
      */
     public function delete(Request $request, JwtAuth $jwtAuth, $id = null, Responses $responses) {
 
+        // Default response
+        $data = $responses->error('L\'utilisateur n\'existe pas.');
         // 1. Get user token
         $token = $request->headers->get('Authorization');
         $checkToken = $jwtAuth->checkToken($token);
 
-        // Default response
-        $data = $responses->error('L\'utilisateur n\'existe pas.');
 
         if($checkToken) {
             $identity = $jwtAuth->checkToken($token, true);

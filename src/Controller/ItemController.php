@@ -33,20 +33,15 @@ class ItemController extends AbstractController
         return new JsonResponse($items);
     }
 
-
     /**
      * @param Request $request
      * @param JwtAuth $jwtAuth
      * @Route("/items/new", name="new", methods={"POST"})
      * @return JsonResponse
      */
-    public function create(Request $request, JwtAuth $jwtAuth, ValidatorInterface $validator) {
+    public function create(Request $request, JwtAuth $jwtAuth, ValidatorInterface $validator, Responses $responses) {
         // Response by default
-        $data = [
-            'status' => 'error',
-            'code'  => 400,
-            'message' => 'L\'objet n\'a pas était créé',
-        ];
+        $data = $responses->error('L\'objet n\'a pas était créé', 401);
 
         // 1. get token
         $token = $request->headers->get('Authorization', null);
@@ -105,12 +100,7 @@ class ItemController extends AbstractController
                     $entityManager->flush();
 
                     // Success Response
-                    $data = [
-                        'status' => 'succèss',
-                        'code'  => 200,
-                        'message' => 'L\'objet a était créé!',
-                        'item' => $item,
-                    ];
+                    $data = $responses->success($item, "L'objet a été créé avec succès.");
                 }
             }
 
@@ -212,4 +202,45 @@ class ItemController extends AbstractController
         return new JsonResponse($data);
     }
 
+    /**
+     * @Route("/items/delete/{id}", name="item_delete", methods={"DELETE"})
+     * @return JsonResponse
+     **/
+    public function delete(Request $request, JwtAuth $jwtAuth, Responses $responses, $id = null) {
+        // Default response
+        $data = $responses->error('Objet non trouvé.');
+
+        // 1. get token
+        $token = $request->headers->get('Authorization');
+
+        // 2. Verify and validate token
+        $checkToken = $jwtAuth->checkToken($token);
+
+        if($checkToken) {
+            // get data logged user
+            $identity = $jwtAuth->checkToken($token, true);
+            // get Doctrine
+            $doctrine = $this->getDoctrine();
+            // get EntityManager
+            $entityManager = $doctrine->getManager();
+
+            // get item to delete
+            $item = $doctrine->getRepository(Item::class)->findOneBy([ 'id' => $id, ]);
+            $author = $item->getUser()->getId();
+            // Remove item from DB
+            if($item && is_object($item)) {
+                if($author === $identity->sub || $identity->role === 'admin') {
+                    $entityManager->remove($item);
+                    $entityManager->flush();
+                    // success response
+                    $data = $responses->success($item, 'L\'objet a été supprimé avec succès.');
+                }
+                else {
+                    $data = $responses->error('Vous n\'avez pas le droit pour réaliser cette action.', 401);
+                }
+            }
+        }
+
+        return new JsonResponse($data);
+    }
 }
