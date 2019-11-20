@@ -160,5 +160,35 @@ class CategoryController extends AbstractController
         return new JsonResponse($data);
     }
 
+    /**
+     * @Route("/categories/delete/{id}", name="category_delete", methods={"DELETE"})
+     */
+    public function delete(Request $request, JwtAuth $jwtAuth, $id = null, Responses $responses) {
+
+        // Default response
+        $data = $responses->error("La catégorie n'existe pas ou vous devez vous connecter en tant qu'admin pour réaliser cette action.");
+        // 1. Get user token
+        $token = $request->headers->get('Authorization');
+
+        // 2. verify token
+        $checkToken = $jwtAuth->checkToken($token);
+        if($checkToken) {
+            $identity = $jwtAuth->checkToken($token, true);
+            // 3. Get user by id from DB
+            $category = $this->getDoctrine()->getRepository(Category::class)->findOneBy(['id' => $id]);
+
+            // 4. Remove category from DB
+            if($category && is_object($category) && $identity->role === 'admin') {
+
+                $em = $this->getDoctrine()->getManager();
+                $em->remove($category);
+                $em->flush();
+                // success response
+                $data = $responses->success($category, 'La catégorie a été supprimé avec succès.');
+            }
+        }
+        return new JsonResponse($data);
+    }
+
 
 }
