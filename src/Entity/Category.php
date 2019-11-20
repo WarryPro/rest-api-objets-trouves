@@ -122,9 +122,10 @@ class Category implements \JsonSerializable
     public function jsonSerialize():array
     {
         return [
-            'id'            => $this->id,
-            'name'         => $this->name,
-            'createdAt'         => $this->createdAt,
+            'id'        => $this->id,
+            'name'      => $this->name,
+            'createdAt' => $this->createdAt,
+            'updatedAt' => $this->updatedAt,
         ];
     }
 

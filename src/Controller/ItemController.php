@@ -10,7 +10,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Validator\Constraints\Email;
 use Symfony\Component\Validator\Validation;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Doctrine\ORM\EntityManagerInterface;
 
 use App\Entity\User;
 use App\Entity\Item;
@@ -25,13 +27,38 @@ class ItemController extends AbstractController
      * @Route("/", name="homepage", methods={"GET"})
      * @Route("/items", name="items", methods={"GET"})
      */
-    public function items()
+    public function items(Request $request, PaginatorInterface $paginator, EntityManagerInterface $entityManager, Responses $responses)
     {
-        $itemRepo = $this->getDoctrine()->getRepository(Item::class);
+        // Default response
+        $data = $responses->error("il n'y a pas d'objets à afficher.");
 
-        $items = $itemRepo->findAll();
+        // 1. create requête dql
+        $dql = "SELECT i FROM App:Item i ORDER BY i.id DESC";
+        $query = $entityManager->createQuery($dql);
 
-        return new JsonResponse($items);
+        // 2. Get param page
+        $page = $request->query->getInt('page', 1);
+        $itemsPerPage = 6;
+
+        // 3. Invok pagination
+        $pagination = $paginator->paginate($query, $page, $itemsPerPage);
+
+        $total = $pagination->getTotalItemCount();
+
+        // 4. verify and validate have items
+        if($total > 0) {
+
+            $data = [
+                'status'    => 'success',
+                'code'      => 200,
+                'total_users_count' => $total,
+                'current_page'  => $page,
+                'users_per_page'    => $itemsPerPage,
+                'total_pages'       => ceil($total / $itemsPerPage),
+                'items'             => $pagination->getItems()
+            ];
+        }
+        return new JsonResponse($data);
     }
 
     /**
