@@ -198,12 +198,13 @@ class User implements \JsonSerializable
     public function jsonSerialize():array
     {
         return [
-            'id' => $this->id,
+            'id'        => $this->id,
             'firstname' => $this->firstname,
-            'lastname' => $this->lastname,
-            'email' => $this->email,
-            'role'  => $this->role,
+            'lastname'  => $this->lastname,
+            'email'     => $this->email,
+            'role'      => $this->role,
             'avatar'    => $this->avatar,
+            'items'     => $this->items
         ];
     }
 }

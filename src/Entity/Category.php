@@ -126,6 +126,7 @@ class Category implements \JsonSerializable
             'name'      => $this->name,
             'createdAt' => $this->createdAt,
             'updatedAt' => $this->updatedAt,
+            'items'     => $this->items,
         ];
     }
 

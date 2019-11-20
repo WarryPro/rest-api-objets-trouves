@@ -97,10 +97,9 @@ class CategoryController extends AbstractController
         $data = $responses->error('Cette catégorie n\'existe pas.');
 
         // 1. get category
-        $category = $this->getDoctrine()->getRepository(Category::class)->findOneBy([
-            'id' => $id
-        ]);
-        // 2. Verify and validate item
+        $category = $this->getDoctrine()->getRepository(Category::class)->findOneBy([ 'id' => $id ]);
+
+        // 2. Verify and validate category
         if($category && is_object($category)) {
             // 3. Success response
             $data = $responses->success($category);
