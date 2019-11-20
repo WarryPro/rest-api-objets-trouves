@@ -254,9 +254,9 @@ class ItemController extends AbstractController
 
             // get item to delete
             $item = $doctrine->getRepository(Item::class)->findOneBy([ 'id' => $id, ]);
-            $author = $item->getUser()->getId();
             // Remove item from DB
             if($item && is_object($item)) {
+                $author = ($item->getUser()->getId())? $item->getUser()->getId() : null;
                 if($author === $identity->sub || $identity->role === 'admin') {
                     $entityManager->remove($item);
                     $entityManager->flush();
