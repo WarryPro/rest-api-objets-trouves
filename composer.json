@@ -8,6 +8,7 @@
         "doctrine/annotations": "^1.8",
         "firebase/php-jwt": "3.0.0",
         "knplabs/knp-paginator-bundle": "^4.0",
+        "nelmio/cors-bundle": "^2.0",
         "symfony/asset": "4.*",
         "symfony/console": "4.3.*",
         "symfony/dotenv": "4.3.*",
