@@ -13,6 +13,7 @@ use Symfony\Component\Validator\Validation;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\ItemRepository;
 
 use App\Entity\User;
 use App\Entity\Item;
@@ -92,6 +93,7 @@ class ItemController extends AbstractController
                 $description = (!empty($params->description)) ? $params->description : null;
                 $image       = (!empty($params->image)) ? $params->image : '';
                 $type        = ($params->type) ? $params->type : 0;
+                $city        = ($params->city) ? $params->city : null;
                 $category    = (!empty($params->category)) ? $params->category : null;
                 $status      = ($params->status) ? $params->status : 'Normal';
 
@@ -113,6 +115,7 @@ class ItemController extends AbstractController
                           ->setDescription($description)
                           ->setImage($image)
                           ->setType($type)
+                          ->setCity($city)
                           ->setCategory($categoryEntity)
                           ->setStatus($status);
 
@@ -199,10 +202,11 @@ class ItemController extends AbstractController
                         $image = (!empty($params->image)) ? $params->image : null;
                         $type = (!empty($params->type)) ? $params->type : 0;
                         $status = $params->status;
+                        $city = $params->city;
                         $category = (!empty($params->category)) ? $params->category : null;
 
 
-                        if(!empty($title)  && !empty($description) && !empty($image)) {
+                        if(!empty($title)  && !empty($description) && !empty($image) && !empty($city)) {
                             // assign new data to user objet
                             $item->setTitle($title)
                                 ->setDescription($description)
@@ -210,6 +214,7 @@ class ItemController extends AbstractController
                                 ->setType($type)
                                 ->setStatus($status)
                                 ->setUpdatedAt( new \DateTime("now"))
+                                ->setCity( $city)
                                 ->setImage($category);
 
                             // save changes in DB
@@ -269,6 +274,28 @@ class ItemController extends AbstractController
             }
         }
 
+        return new JsonResponse($data);
+    }
+
+
+    /**
+     * @Route("/search", name="search_item", methods={"POST"})
+    */
+    function search(Request $request, Responses $responses) {
+
+        // Default response
+        $data = $responses->error('Aucun objet trouvé pour cette recherche');
+        // 1. get repo
+        $itemRepo = $this->getDoctrine()
+                    ->getManager()
+                    ->getRepository(Item::class);
+
+        //recherche
+        $search = $request->query->get('q');
+
+        if($search) {
+          $data = $itemRepo->search($search);
+        }
         return new JsonResponse($data);
     }
 }

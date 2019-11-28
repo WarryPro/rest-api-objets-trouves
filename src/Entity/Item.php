@@ -71,6 +71,11 @@ class Item implements \JsonSerializable
      */
     private $user;
 
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $city;
+
 
     public function __construct()
     {
@@ -191,6 +196,18 @@ class Item implements \JsonSerializable
         return $this;
     }
 
+    public function getCity(): ?string
+    {
+        return $this->city;
+    }
+
+    public function setCity(string $city): self
+    {
+        $this->city = $city;
+
+        return $this;
+    }
+
     public function jsonSerialize():array
     {
         return [
@@ -198,6 +215,7 @@ class Item implements \JsonSerializable
             'images'         => $this->image,
             'title'         => $this->title,
             'description'   => $this->description,
+            'city'          => $this->city,
             'author'        => $this->user,
             'status'        => $this->status,
             'category'      => $this->category->getName(),
