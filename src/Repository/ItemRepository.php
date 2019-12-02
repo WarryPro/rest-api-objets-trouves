@@ -34,6 +34,18 @@ class ItemRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function homeSearch($date, $city, $title) {
+        return $this->createQueryBuilder('i')
+                ->andWhere('i.title LIKE :title AND i.createdAt BETWEEN :date AND :now AND i.city LIKE :city')
+                ->setParameter(':date', $date)
+                ->setParameter(':now', new \DateTime('now'))
+                ->setParameter(':city', '%' . $city . '%')
+                ->setParameter(':title', '%' . $title . '%')
+                ->orderBy('i.id', 'DESC')
+                ->getQuery()
+                ->getResult();
+    }
+
 
     /*
     public function findOneBySomeField($value): ?Item

@@ -279,7 +279,7 @@ class ItemController extends AbstractController
 
 
     /**
-     * @Route("/search", name="search_item", methods={"POST"})
+     * @Route("/search", name="search_item", methods={"GET"})
     */
     function search(Request $request, Responses $responses) {
 
@@ -295,6 +295,30 @@ class ItemController extends AbstractController
 
         if($search) {
           $data = $itemRepo->search($search);
+        }
+        return new JsonResponse($data);
+    }
+
+    /**
+     * @Route("/homesearch", name="home_search", methods={"GET"})
+    */
+    function homeSearch(Request $request, Responses $responses) {
+
+        // Default response
+        $data = $responses->error('Aucun objet trouvé pour cette recherche');
+        // 1. get repo
+        $itemRepo = $this->getDoctrine()
+                    ->getManager()
+                    ->getRepository(Item::class);
+
+        //recherche
+        $title = $request->query->get('q');
+        $day = $request->query->get('d');
+        $city = $request->query->get('c');
+
+        if(!empty($day) || !empty($city)) {
+            $date = new \DateTime($day);
+          $data = $itemRepo->homeSearch($date, $city, $title);
         }
         return new JsonResponse($data);
     }
