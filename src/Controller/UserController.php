@@ -96,7 +96,7 @@ class UserController extends AbstractController
         // resp by default
         $data = $responses->error("L'utilisateur n'est pas été créé");
         // receive data by post
-        $json = $request->get('json', null);
+        $json = $request->getContent();
 
         // decode json
         $params = json_decode($json);
@@ -162,7 +162,7 @@ class UserController extends AbstractController
         $data =  $responses->error("Erreur de connexion!", 200);
 
         // 1. get data by POST method
-        $json = $request->get('json', null);
+        $json = $request->getContent();
         $params = json_decode($json);
 
         // 3. Verfify and validate data
@@ -182,16 +182,13 @@ class UserController extends AbstractController
                 $pwd = hash('sha256', $password);
                 // 5. if validation is OK, call a service for identify User (jwt, token or an obj)
                 if($getToken) {
-                    $signup = $jwtAuth->signup($email, $pwd, $getToken);
+                    $login = $jwtAuth->login($email, $pwd, $getToken);
 
                 }else {
-                    $signup = $jwtAuth->signup($email, $pwd);
+                    $login = $jwtAuth->login($email, $pwd);
                 }
 
-                return new JsonResponse($signup);
-                // 6. create jwt service
-
-
+                return new JsonResponse($login);
             }
 
         }

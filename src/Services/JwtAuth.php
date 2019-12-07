@@ -25,19 +25,19 @@ class JwtAuth
         $this->key = 'items_found_app';
     }
 
-    public function signup($email, $password, $gettoken = null) {
+    public function login($email, $password, $gettoken = null) {
         // 1. user exist
         $user = $this->manager->getRepository(User::class)->findOneBy([
             'email' => $email,
             'password' => $password
         ]);
 
-        $signup = false;
+        $login = false;
         if(is_object($user)) {
-            $signup = true;
+            $login = true;
         }
         // 2. if user exist, generate token jwt
-        if($signup) {
+        if($login) {
             $token = [
                 'sub'        => $user->getId(),
                 'firstname'  => $user->getFirstname(),
@@ -52,7 +52,12 @@ class JwtAuth
             // 3. verify flag gettoken, condiction
             $jwt = JWT::encode($token, $this->key, 'HS256'); // Generate token
             if(!empty($gettoken)) {
-                $data = $jwt;
+                $data = [
+                    'status' => 'success',
+                    'code' => 200,
+                    'message' => 'Maintenant vous êtes connecté',
+                    'data' => JWT::decode($jwt, $this->key, ['HS256']),
+                    'token' => $jwt];
             }else {
                 $decoded = JWT::decode($jwt, $this->key, ['HS256']);
                 $data = $decoded;

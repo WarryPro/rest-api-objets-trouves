@@ -316,7 +316,7 @@ class ItemController extends AbstractController
         $day = $request->query->get('d');
         $city = $request->query->get('c');
 
-        if(!empty($day) || !empty($city)) {
+        if(!empty($day) && !empty($city) && !empty($title)) {
             $date = new \DateTime($day);
           $data = $itemRepo->homeSearch($date, $city, $title);
         }
