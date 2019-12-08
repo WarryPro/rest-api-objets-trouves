@@ -164,7 +164,6 @@ class UserController extends AbstractController
         // 1. get data by POST method
         $json = $request->getContent();
         $params = json_decode($json);
-
         // 3. Verfify and validate data
         if($json !== null) {
             $email = (!empty($params->email)) ? $params->email : null;
@@ -182,13 +181,13 @@ class UserController extends AbstractController
                 $pwd = hash('sha256', $password);
                 // 5. if validation is OK, call a service for identify User (jwt, token or an obj)
                 if($getToken) {
-                    $login = $jwtAuth->login($email, $pwd, $getToken);
+                    $data = $jwtAuth->login($email, $pwd, $getToken);
 
                 }else {
-                    $login = $jwtAuth->login($email, $pwd);
+                    $data = $jwtAuth->login($email, $pwd);
                 }
 
-                return new JsonResponse($login);
+                return new JsonResponse($data);
             }
 
         }
