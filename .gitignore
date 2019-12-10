@@ -8,6 +8,7 @@
 /vendor/
 .env
 /.idea
+/objets-trouves
 ###< symfony/framework-bundle ###
 
 ###> symfony/web-server-bundle ###
