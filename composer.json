@@ -19,6 +19,7 @@
         "symfony/monolog-bundle": "^3.5",
         "symfony/orm-pack": "^1.0",
         "symfony/property-access": "4.*",
+        "symfony/requirements-checker": "^1.1",
         "symfony/security-bundle": "4.3.*",
         "symfony/serializer": "4.*",
         "symfony/validator": "4.3.*",
@@ -56,7 +57,8 @@
     "scripts": {
         "auto-scripts": {
             "cache:clear": "symfony-cmd",
-            "assets:install %PUBLIC_DIR%": "symfony-cmd"
+            "assets:install %PUBLIC_DIR%": "symfony-cmd",
+            "requirements-checker": "script"
         },
         "post-install-cmd": [
             "@auto-scripts"
