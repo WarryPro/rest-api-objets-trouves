@@ -22,6 +22,8 @@
         "symfony/requirements-checker": "^1.1",
         "symfony/security-bundle": "4.3.*",
         "symfony/serializer": "4.*",
+        "symfony/swiftmailer-bundle": "^3.4",
+        "symfony/twig-pack": "^1.0",
         "symfony/validator": "4.3.*",
         "symfony/yaml": "4.3.*"
     },
