@@ -46,6 +46,18 @@ class ItemRepository extends ServiceEntityRepository
                 ->getResult();
     }
 
+    /**
+     * @return Item|null
+     */
+    public function findLastInserted()
+    {
+        return $this
+            ->createQueryBuilder("i")
+            ->orderBy("i.id", "DESC")
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 
     /*
     public function findOneBySomeField($value): ?Item

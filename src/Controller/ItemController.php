@@ -6,18 +6,15 @@ use App\Services\Responses;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Validator\Constraints\Email;
-use Symfony\Component\Validator\Validation;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Repository\ItemRepository;
 
 use App\Entity\User;
 use App\Entity\Item;
 use App\Entity\Category;
+use App\Entity\Image;
 
 use App\Services\JwtAuth;
 
@@ -80,7 +77,9 @@ class ItemController extends AbstractController
         if($checkToken) {
 
             // 3. get data by POST
-            $json = $request->get('json', null);
+
+            $json = $request->getContent();
+
             $params = json_decode($json);
 
             // 4. get logged user object
@@ -91,7 +90,6 @@ class ItemController extends AbstractController
                 $userId      = ($identity->sub !== null) ? $identity->sub :  null;
                 $title       = (!empty($params->title)) ? $params->title : '';
                 $description = (!empty($params->description)) ? $params->description : null;
-                $image       = (!empty($params->image)) ? $params->image : '';
                 $type        = ($params->type) ? $params->type : 0;
                 $city        = ($params->city) ? $params->city : null;
                 $category    = (!empty($params->category)) ? $params->category : null;
@@ -113,7 +111,6 @@ class ItemController extends AbstractController
                     $item ->setUser($user)
                           ->setTitle($title)
                           ->setDescription($description)
-                          ->setImage($image)
                           ->setType($type)
                           ->setCity($city)
                           ->setCategory($categoryEntity)
