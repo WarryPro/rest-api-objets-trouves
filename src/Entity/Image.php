@@ -22,7 +22,7 @@ class Image implements \JsonSerializable
     private $name;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Item", inversedBy="images", cascade={"remove"})
+     * @ORM\ManyToOne(targetEntity="App\Entity\Item", inversedBy="images", cascade={"persist"})
      */
     private $Item;
 
