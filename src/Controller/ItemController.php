@@ -36,7 +36,7 @@ class ItemController extends AbstractController
 
         // 2. Get param page
         $page = $request->query->getInt('page', 1);
-        $itemsPerPage = 6;
+        $itemsPerPage = 8;
 
         // 3. Invok pagination
         $pagination = $paginator->paginate($query, $page, $itemsPerPage);
@@ -49,9 +49,9 @@ class ItemController extends AbstractController
             $data = [
                 'status'    => 'success',
                 'code'      => 200,
-                'total_users_count' => $total,
+                'total_items_count' => $total,
                 'current_page'  => $page,
-                'users_per_page'    => $itemsPerPage,
+                'items_per_page'    => $itemsPerPage,
                 'total_pages'       => ceil($total / $itemsPerPage),
                 'items'             => $pagination->getItems()
             ];
@@ -188,31 +188,35 @@ class ItemController extends AbstractController
                     'user' => $userId
                 ]);
 
+
                 if($item && is_object($item)) {
                     // Get data by POST
-                    $json = $request->get('json', null);
+                    $json = $request->getContent();
                     $params = json_decode($json);
                     // verify and validate data
                     if(!empty($json)) {
                         $title = (!empty($params->title)) ? $params->title : null;
                         $description = (!empty($params->description)) ? $params->description : null;
-                        $image = (!empty($params->image)) ? $params->image : null;
                         $type = (!empty($params->type)) ? $params->type : 0;
                         $status = $params->status;
                         $city = $params->city;
+                        $date = new \DateTime($params->created->date);
                         $category = (!empty($params->category)) ? $params->category : null;
 
+                        $categoryEntity = $this->getDoctrine()->getRepository(Category::class)->findOneBy([
+                            'id' => $category,
+                        ]);
 
-                        if(!empty($title)  && !empty($description) && !empty($image) && !empty($city)) {
+                        if(!empty($title)  && !empty($description) && !empty($city)) {
                             // assign new data to user objet
                             $item->setTitle($title)
                                 ->setDescription($description)
-                                ->setImage($image)
                                 ->setType($type)
                                 ->setStatus($status)
+                                ->setCreatedAt($date)
                                 ->setUpdatedAt( new \DateTime("now"))
                                 ->setCity( $city)
-                                ->setImage($category);
+                                ->setCategory($categoryEntity);
 
                             // save changes in DB
                             $entityManager->persist($item);
