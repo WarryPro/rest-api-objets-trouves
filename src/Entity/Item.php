@@ -241,13 +241,14 @@ class Item implements \JsonSerializable
     {
         $itemImage = Array();
         foreach ($this->images as $image) {
-            array_push($itemImage, $image->getName());
+            array_push($itemImage, ["name" => $image->getName(), "id" => $image->getId()] );
         }
         return [
             'id'            => $this->id,
             'images'         => $itemImage,
             'title'         => $this->title,
             'description'   => $this->description,
+            'type'          => $this->type,
             'city'          => $this->city,
             'author'        => $this->user,
             'status'        => $this->status,
