@@ -67,7 +67,7 @@ class UserController extends AbstractController
 
             // 6. Get param page
             $page = $request->query->getInt('page', 1);
-            $usersPerPage = 6;
+            $usersPerPage = 10;
             // 7. Invok pagination
             $pagination = $paginator->paginate($query, $page, $usersPerPage);
 
