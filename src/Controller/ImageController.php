@@ -17,9 +17,6 @@ use App\Services\Responses;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Knp\Component\Pager\PaginatorInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
-use Doctrine\ORM\EntityManagerInterface;
 
 
 class ImageController extends AbstractController

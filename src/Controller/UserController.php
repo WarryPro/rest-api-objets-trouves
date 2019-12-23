@@ -199,7 +199,8 @@ class UserController extends AbstractController
 
     /**
      * @param Request $request
-     * @Route("/user/edit", name="edit", methods={"PUT"})
+     * @Route("/user/edit", name="user-edit", methods={"PUT"})
+     * Permet aux utilisateurs màj ses infos
      */
     public function edit(Request $request, JwtAuth $jwtAuth, Responses $responses)
     {
@@ -230,7 +231,7 @@ class UserController extends AbstractController
 
 
             // Get data by POST
-            $json = $request->get('json', null);
+            $json = $request->getContent();
             $params = json_decode($json);
 
             // verify and validate data
@@ -273,6 +274,92 @@ class UserController extends AbstractController
         }
 
         return $this->JsonResponse($data);
+    }
+
+
+    /**
+     * @param Request $request
+     * @Route("/admin/users/edit/{id}", name="user-edit", methods={"PUT"})
+     * Permet à l'admin màj un utilisateur
+     */
+    public function AdminEdit(Request $request, JwtAuth $jwtAuth, Responses $responses)
+    {
+        // Reponse by default
+        $data = $responses->error("Vous n'avez pas le droit de réaliser cette action", 404);
+        // 1. get auth header
+        $token = $request->headers->get('Authorization');
+
+        // 2. create method to verify if token is OK
+        $checkToken = $jwtAuth->checkToken($token);
+
+        // 3. If token OK, update user
+        if($checkToken) {
+            // Update user
+
+            // get EntityManager
+            $entityManager = $this->getDoctrine()->getManager();
+
+            // get data logged user
+            $identity = $jwtAuth->checkToken($token, true);
+
+            if($identity->role === 'admin') {
+                $userRepo = $this->getDoctrine()->getRepository(User::class);
+                $id = $request->get('id');
+                $user = $userRepo->findOneBy([
+                    'id' => $id
+                ]);
+
+                // Get data by POST
+                $json = $request->getContent();
+                $params = json_decode($json);
+
+                if($user == null && !is_object($user)) {
+                    $data = $responses->error('Utilisateur non trouvé!', 404);
+                }
+
+                // verify and validate data
+                if(!empty($json)) {
+                    $firstname = (!empty($params->firstname)) ? $params->firstname : $user->getFirstname();
+                    $lastname = (!empty($params->lastname)) ? $params->lastname : $user->getLastname();
+                    $password = (!empty($params->password)) ? hash('sha256', $params->password) : $user->getPassword();
+                    $email = (!empty($params->email)) ? $params->email : $user->getEmail();
+                    $role = (!empty($params->role)) ? $params->role : $user->getRole();
+
+                    $validator = Validation::createValidator();
+                    $validateEmail = $validator->validate($email, [
+                        new Email()
+                    ]);
+
+                    if(!empty($email) && count($validateEmail) == 0 && !empty($firstname) && !empty($lastname)) {
+                        // verify duplicate data
+                        $issetUser = $userRepo->findBy([
+                           'email' => $email
+                        ]);
+                        // save changes in DB
+                        if(count($issetUser) === 0 || $email === $user->getEmail()) {
+                            // assign new data to user objet
+                            $user->setEmail($email)
+                                ->setFirstname($firstname)
+                                ->setLastname($lastname)
+                                ->setPassword($password) // crypt password
+                                ->setRole($role);
+
+                            $entityManager->persist($user);
+                            $entityManager->flush();
+
+                            // response if user update OK
+                            $data = $responses->success($user, 'Utilisateur mis à jour avec succès!');
+                        }else {
+                            // Response if not updated
+                            $data = $responses->error('Vous ne pouvez pas utiliser cet email!', 422);
+                        }
+
+                    }
+                }
+            }
+        }
+
+        return new JsonResponse($data);
     }
 
     /**

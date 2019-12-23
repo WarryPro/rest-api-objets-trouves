@@ -14,7 +14,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\User;
 use App\Entity\Item;
 use App\Entity\Category;
-use App\Entity\Image;
 
 use App\Services\JwtAuth;
 
